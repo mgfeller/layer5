@@ -15,6 +15,7 @@ redirect_from:
 ---
 
 import { BlogWrapper } from "../Blog.style.js";
+import meskitKubernetesExample from "./meshkit-kubernetes-example.png";
 import adapterHandlerInterface from "./adapter-handler-interface.png";
 import meshServiceServer from "./mesh-service-server.png"
 
@@ -46,10 +47,15 @@ The following simple example illustrates how nginx deployment manifest is applie
 Meshkit library contains code that is useful for most if not all Meshery applications.
 helps unified approach, e.g. one log format, consistent errors, implements utilities like kubernetes or helm client low level non trivial. if you wonder how to, have a look.
 
+Programmatically deploy a manifest to a Kubernetes cluster. 
+Similarly, meshkit provides an easy way to install a Helm chart.
 
 it can’t get much simpler than this.
 it doesn’t get much simpler than that.
 note all error handling code is not shown here:
+
+<img src={meshServiceServer} class="image-center" alt="meshkit kubernetes example" />
+
 
 ```go
 package main
