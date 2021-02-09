@@ -26,33 +26,27 @@ The Meshery v0.5.0 release includes two new libraries: Meshkit and Meshery Adapt
 These two libraries improve developer experience and development speed, allowing developers to focus on creating differentiating value, 
 instead of having to implement much of the required and inevitable plumbing. 
 
-### meshkit provides functionality useful in all Meshery code.
+### Meshkit provides functionality useful in all Meshery code.
 
-Meshkit has been around for a while, it was formerly named `gokit`. In this release, meshkit has seen some substantial enhancements, 
-a few of which will be discussed in this article. 
+Meshkit has been around for a while, it was formerly named `gokit`. In this release, meshkit has been enhanced and expanded 
+substantially, and is used in a growing number of applications.  
 
-The meshkit library provides functionality useful in all Meshery code. It is intended to be one of the top level libraries in the Meshery code ecosystem.
+The meshkit library provides functionality useful in all Meshery code. It is intended to be one of the top level libraries in the Meshery ecosystem.
  
+It is a toolkit for Layer5’s microservices, and it is intended to become Layer5’s middleware component for Layer5’s microservices, leveraging other libraries like `go-kit/kit`.
 
-It is to be included in all Meshery libraries. It is a toolkit for layer5’s microservices. 
-Its purpose is to also provide implementations for common cross cutting concerns like error handling, logging, and tracing. 
-It provides models common to many Meshery functionality, like smi conformance and k8s kubeconfig.
-Common error handling and logging across xyz is important for unified observability, monitoring and troubleshooting
-it leverages other libraries like go-kit/kit. will become layer5’s middleware component for Layer5’s microservices.
-another important component is the utils package.
-it provides a kubernets and helm client providing functionality on a higher level than the client-go libraried, making it very easy to apply a kubernets manifest to a cluster, or deploy a helm chart.
-for instance, the following code can be used to deploy a manifest to a kubernetes cluster, as is e.g. used in mesheryctl.
-The following simple example illustrates how nginx deployment manifest is applied to the cluster.
+Its purpose is to also provide implementations for common cross-cutting concerns like error handling, logging, and tracing.
+Common error handling and logging helps to implement efficient tooling for observability, monitoring and troubleshooting.
+ 
+It provides some common data models for Meshery, notably for Service Mesh Interface (SMI) conformance testing, and Kubernetes' kubeconfig.
 
-Meshkit library contains code that is useful for most if not all Meshery applications.
-helps unified approach, e.g. one log format, consistent errors, implements utilities like kubernetes or helm client low level non trivial. if you wonder how to, have a look.
+Another central component in Meshkit is the `utils` package.
 
-Programmatically deploy a manifest to a Kubernetes cluster. 
-Similarly, meshkit provides an easy way to install a Helm chart.
+It provides a Kubernetes and Helm client that implement easy to use functionality based on the native libraries of these tools. 
+This means that it is not necessary to use the command line versions of these tools, providing a more tailored experience for developers, and better logging and error handling integration.
+The native libraries are low-level so the functions in the utils package provide a huge benefit.
 
-it can’t get much simpler than this.
-it doesn’t get much simpler than that.
-note all error handling code is not shown here:
+It is simple and straight forward to use, as the following code example illustrates.   
 
 <img src={meshServiceServer} class="image-center" alt="meshkit kubernetes example" />
 
