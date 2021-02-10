@@ -18,6 +18,7 @@ import { BlogWrapper } from "../Blog.style.js";
 import meskitKubernetesExample from "./meshkit-kubernetes-example.png";
 import adapterHandlerInterface from "./adapter-handler-interface.png";
 import meshServiceServer from "./mesh-service-server.png"
+import malOverview from "./meshery-adapter-library-overview.png"
 
 <BlogWrapper>
 
@@ -29,7 +30,7 @@ instead of having to implement much of the required and inevitable plumbing.
 ### Meshkit provides functionality useful in all Meshery code.
 
 Meshkit has been around for a while, it was formerly named `gokit`. In this release, meshkit has been enhanced and expanded 
-substantially, and is used in a growing number of applications.  
+substantially, and is used in a growing number of Meshery applications.
 
 The meshkit library provides functionality useful in all Meshery code. It is intended to be one of the top level libraries in the Meshery ecosystem.
  
@@ -38,13 +39,15 @@ It is a toolkit for Layer5’s microservices, and it is intended to become Layer
 Its purpose is to also provide implementations for common cross-cutting concerns like error handling, logging, and tracing.
 Common error handling and logging helps to implement efficient tooling for observability, monitoring and troubleshooting.
  
-It provides some common data models for Meshery, notably for Service Mesh Interface (SMI) conformance testing, and Kubernetes' kubeconfig.
+It provides some common data models for Meshery, notably for Service Mesh Interface conformance testing, and Kubernetes' kubeconfig.
 
 Another central component in Meshkit is the `utils` package.
 
-It provides a Kubernetes and Helm client that implement easy to use functionality based on the native libraries of these tools. 
-This means that it is not necessary to use the command line versions of these tools, providing a more tailored experience for developers, and better logging and error handling integration.
-The native libraries are low-level so the functions in the utils package provide a huge benefit.
+It provides a Kubernetes and a Helm client that implement functionality based on the Go libraries of these tools.
+The API exposed by these libraries is quite low-level, and the higher-level functions of the utils package simplify usage of Kubernetes and Helm client significantly.
+
+Another advantage is that it is not necessary to use the command line versions of these tools, providing a more tailored experience for developers, 
+and better logging and error handling integration.
 
 It is simple and straight forward to use, as the following code example illustrates.   
 
@@ -128,105 +131,83 @@ spec:
 }
 ```
 
-### Meshery Adapter Library 
+### Meshery Adapters
 
 > Meshery adapters manage the lifecycle of service meshes.
 
 Meshery adapters are management plane components and manage the lifecycle of service meshes. 
-This includes installation and deletion, configuration, verification that an installation follows recommended practices. 
-
-In addition, Meshery adapters can verify whether a service mesh complies to SMI, the service mesh interface standard. 
+This includes installation and deletion, configuration, and verification that an installation follows recommended practices. 
+In addition, Meshery adapters can assess to what extent a service mesh complies to the Service Mesh Interface standard. 
 
 Adapters include also sample applications that can be deployed for easy and quick exploration of service mesh capabilities.
 
-The Meshery Adapter Library contains code common to all adapters, reducing the amount of boilerplate code substantially and 
-making adapter code easier to follow.
-
-All Meshery adapters are packaged as Docker images and expose the same gRPC API:
+All Meshery adapters are packaged as Docker images. They expose the following gRPC API:
 
 <img src={meshServiceServer} class="image-center" alt="mesh service server grpc" />
 
-Each Meshery adapter is packaged as a Docker image. All Meshery adapters implement the same gRPC API. 
-This makes it easy to add new adapters to Meshery, and is one of the extension points of Meshery.
+In other words, a Meshery adapter is a gRPC server that exposes this interface. 
+
+This is one of the extension points Meshery, making it easy to add support for new service meshes to Meshery.
 
 > Meshery adapters abstract away the differences in how service meshes are installed and configured.
 
 Meshery adapters abstract away the differences in how service meshes are installed and configured. 
 For instance, some service meshes have their own installer, like `istioctl` for Istio, while others use Helm charts, like Consul. 
 
-from point of view of caller, information about the service mesh and adapter, name and version.
-
-Meshery frontend is not supposed to know anything about the adapters, except how to reach their endpoint. Meshery adapter no state (almost)
-list of operations is what the user of adapters is interested in
-operation is eg installing a service mesh, installing a sample application, running an smi conformance test.
-All Meshery adapters implement the same gRPC service interface. It provides five functions:
- 
- * CreateMeshInstance: 
- * MeshName: returns the name of the mesh
- * ApplyOperation
- * SupportedOperations: returns a list of operations
- * StreamEvents:
-  
-All Meshery adapters implement the same gRPC service interface. 
-A Meshery adapter is a gRPC server that exposes this interface. 
-The Meshery frontend running in a browser is sending requests to the Meshery backend which in turn acts as a client of 
-Meshery adapters, using this interface. (For a detailed discussion, see xyz). 
-Another client is for instance the tool gRPCurl that is used in tests to verify functionality of an adapter. 
-
-The gRPC interface exposes these functions (and more are likely to follow): 
-
-<img src={meshServiceServer} class="image-center" alt="mesh service server grpc" />
+### Meshery Adapter Library 
 
 As can be expected, adapters for the various meshes have a lot of code in common. 
 
-Initially, the common code was copied from one adapter implementation to the next. 
+Initially, this common code was copied from one adapter implementation to the next. 
 
 The question arose whether common code should be factored out to one or several common libraries. 
 
-This is of course a common scenario, and advantages and disadvantages of common libraries have been discussed extensively in the history of programming. 
-This community has discussed it as well, and concluded that it provides value. 
-For one, as there is less code in each adapter, it is easier to get an overview and understand what is happening. 
+After some discussion, the community decided to move some of the more general code to meshkit, and adapter specific code to a new library.
+
+Thus, the Meshery Adapter Library was born.
+
+It reduces the amount of boilerplate code in the adapters substantially, making adapter code easier to follow.
 This is especially valuable in an open source community where typically many developers contribute, for varying amounts of time.
-For the same reasons, it is important that libraries are easy to understand.  
-
+For the same reasons, it is important such libraries are easily understandable.  
  
-For the other, new adapters can be implemented quickly. 
-In principle, what needs to be implemented is configuration and operations that differ between the meshes. 
-It is important that common libraries implement good and easy to understand abstractions. 
-It is useful that they implement all the boring and repetitive stuff, the ‘plumbing’. 
-Common libraries should provide default implementations which can easily be replaced. 
-For this, well defined extension points should be declared. This is of course implemented using interfaces.
-  
-The Meshery Adapter Library provides a common and consistent set of functionality that Meshery adapters use for 
-managing the lifecycle, configuration, operation, and performance of service meshes and their workloads.
+Also, it means new adapters can be implemented quickly, as nly configuration and operations that differ between services meshes need to be implemented. 
 
-The initial code commit was submitted on October 6th 2020 based on a refactoring effort in the adapter for the Kuma service mesh. 
+> The Meshery Adapter Library provides a common and consistent set of functionality that Meshery adapters use for  
+> managing the lifecycle of service meshes and their workloads.
+
+The initial commit was submitted on October 6th 2020 based on a refactoring effort in the adapter for the Kuma service mesh. 
 Within a few months, several adapters have been refactored or implemented from scratch based on this common library.
 
-The main purpose of the meshery-adapter-library is to
+The main purpose of the Meshery Adapter Library is to
 * provide a set of interfaces, some with default implementations, to be used and extended by adapters.
-* implement common cross cutting concerns like logging, error handling, and tracing.
+* implement cross-cutting concerns like logging, error handling, and tracing.
 * provide a mini framework implementing the gRPC server that allows plugging in the mesh specific configuration and operations implemented in the adapters.
 
-The library consists of interfaces and default implementations for the main and common functionality of an adapter. 
-It also provides a mini-framework that runs the gRPC adapter service, calling the functions of handlers injected by the adapter code. 
-This is represented in an UML-ish style in the figure below. 
+The figure below illustrates the usage of the library in an adapter, leveraging UML notation.
 
-The gRPC service is set up, instantiated and started in the main package of each adapter.
+The library is represented by the top package, the adapter code by the bottom package. 
 
-In turn, concrete handlers with the default implementation from the library, or an adapter specific implementation 
-realised by extending default implementation, loading adapter specific configuration, and implementing adapter specific operations.
+By struct embedding, the adapter extends the default implementation `Adapter` of the interface `Handler` from the library, for the adapter specific lifecycle management operations.
 
-The main component is of course the adapter handler, that implements the adapter interface. 
-The default implementation in the library implements all functions except `ApplyOperation`, where a no-op function is provided. 
-This makes the architecture more explicit and helps leverage IDE support for the code as seen in this screenshot from intellij:
-
+The `Handler` interface looks like this:
 
 <img src={adapterHandlerInterface} class="image-center" alt="adapter handler interface" />
 
-Also, using interfaces like that has another advantage: chained, wrapped, delegated. middleware. intercepting. e.g. logging all calls.
-Illustrating
+In the `main` package of the adapter, the default configuration provider `Viper` from the library is instantiated, and reads the adapter specific configuration. 
+This includes a specification of all available operations.
 
+The `Service` struct from the library implements both the adapter handler and the gRPC service interface, `MeshServiceServer`. 
+The concrete adapter handler implementation (TODO: callout numbers) is used in the `Service` instance. The `Start` function from 
+the library wraps the gRPC server, wiring up all necessary components, and starts the service. The developer does not need to touch 
+any gRPC code.  
+
+<img src={malOverview} class="image-center" alt="meshkit adapter library overview" />
+
+### Conclusion
+
+Extracting common code from adapters to the two new libraries has proven to be a worthwhile investment. 
+It led to cleaner code as well as cleaner application architecture, and shortened implementation time for new adapters considerably.
+The libraries are continuously improved and extended. 
 
 \- Michael Gfeller
 
